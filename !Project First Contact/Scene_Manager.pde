@@ -72,7 +72,7 @@ class SceneManager
       sw.DrawLayout();
     }
     for (Item i : currentScene.items)
-     i.Draw();
+      i.Draw();
   }
   void mouseReleased() {
     for (SceneSwitch sw: currentScene.switches)
@@ -81,6 +81,10 @@ class SceneManager
       {
         switchScenes (sw.fromScene, sw.toScene);
       }
+    }
+    for (Item i : currentScene.items)
+    {
+      i.mouseReleased();
     }
   }
 }

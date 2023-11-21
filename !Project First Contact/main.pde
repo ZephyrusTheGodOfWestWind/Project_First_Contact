@@ -1,11 +1,19 @@
 void ParticleSystemSetup ()
 {
   ps.enabled = true;
-  ps.pos = new PVector (500, 500);
-  ps.initialColor = 0x00ff0000;
-  ps.endColor = #00ff00;
-  ps.radius = 500;
+  ps.mode = Mode.RECT;
+  ps.maxParticles = 500;
+  ps.lifespan = 10;
+  ps.pos = new PVector (width/2, height/2);
+  ps.size = new PVector (width-100, height-100);
+  //ps.radius = 100;
   ps.spawnTimer = 0;
+  
+  ps.initialSpeed = 20;
+  ps.endSpeed = 10;
+  
+  ps.initialColor = 0x440044ff;
+  ps.endColor = #00ffaa;
 }
 void SceneManagerSetup()
 {
@@ -30,12 +38,16 @@ void InventorySetup ()
     inv.slots.add( new UIPanel( new PVector(10+100*i, 10), new PVector(80, 80), inventory));
   }
 }
+
+void ItemsSetup()
+{
+  new Item("amogus", loadImage("data/amogus.png"), new PVector(800,300), new PVector(100,100), sm.scenes.get(2));
+  new Item("mogus", loadImage("data/mogus.png"), new PVector(200,300), new PVector(100,100), sm.scenes.get(1));
+}
 ParticleSystem ps;
 SceneManager sm;
 Inventory inv;
-
-PImage amogus;
-Item test;
+Trigger t;
 
 UIPanel inventory;
 float deltaTime;
@@ -46,7 +58,6 @@ void setup(){
   frameRate (60);
   imageMode(0);
   noStroke();
-  amogus = loadImage("data/amogus.png");
   //noCursor();
   time =0;
   
@@ -55,11 +66,12 @@ void setup(){
   inv = new Inventory();
   ParticleSystemSetup();
   SceneManagerSetup();
-  inventory = new UIPanel (new PVector (50, 600),new PVector (1100, 100));
+  inventory = new UIPanel (new PVector (90, 620),new PVector (1100, 100));
   InventorySetup();
+  ItemsSetup();
   
-  test = new Item(amogus, new PVector(800,300), new PVector(100,100), sm.scenes.get(2));
-  test.inventory = inv;
+  t = new Trigger(new PVector (200, 200), new PVector (100, 100), sm.scenes.get(0), Type.ITEM);
+  t.itemName = "amogus";
 }
 void draw()
 {
@@ -70,11 +82,24 @@ void draw()
   background(0);
   ps.draw();
   sm.draw();
+  t.DrawLayout();
   inventory.Draw();
-  test.Draw();
+  inv.draw();
+  
+  fill(#00ff77);
+  textSize(20);
+  text(frameRate, 0, 20);
+  
+  println(ps.p.size());
 }
 void mouseReleased()
 {
   sm.mouseReleased();
-  test.mouseReleased();
+  inv.mouseReleased();
+  t.mouseReleased();
+}
+
+void keyReleased()
+{
+  inv.keyReleased();
 }

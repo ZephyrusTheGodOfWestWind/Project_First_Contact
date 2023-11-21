@@ -26,7 +26,7 @@ class ParticleSystem
 {
   boolean enabled = true;
   PImage sprite;
-  PVector pos;
+  PVector pos, size;
   float spawnPeriod;
   float spawnTimer;
   float lifespan = 2;
@@ -35,7 +35,7 @@ class ParticleSystem
   Mode mode = Mode.RAD;
   
   float initialSpeed = 20;
-  float endSpeed = 50;
+  float endSpeed = 500  ;
   
   float radius = 200;
   
@@ -50,30 +50,41 @@ class ParticleSystem
     p = new ArrayList<Particle>();
   }
   
+  PVector RandomPos ()
+  {
+    if (mode == Mode.RAD)
+      return PVector.random2D().mult(random(0,radius));
+    if (mode == Mode.RECT)
+      return new PVector(random(-size.x/2, size.x/2), random(-size.y/2, size.y/2));
+    return new PVector (0,0);
+  }
   void draw(){
     
-    ps.spawnPeriod = ps.lifespan/ps.maxParticles;
-    ps.spawnTimer+=deltaTime;
-    if (ps.spawnTimer>ps.spawnPeriod && enabled)
+    spawnPeriod = lifespan/maxParticles;
+    spawnTimer+=deltaTime;
+    if (spawnTimer>spawnPeriod && enabled)
     {
-      ps.p.add(new Particle(ps.initialColor, PVector.random2D().mult(random(0,ps.radius)).add(ps.pos), PVector.random2D().mult(ps.initialSpeed), ps.lifespan));
+      int count = int(spawnTimer/spawnPeriod);
+      for (int i=0; i<count; i++)
+        p.add(new Particle(initialColor, pos.copy().add(RandomPos()), PVector.random2D().mult(initialSpeed), lifespan));
+      spawnTimer = spawnTimer%spawnPeriod;
     }
     
-    int toDestroy = -1;
-    for (int i=0; i<ps.p.size(); i++)
+    IntList toDestroy = new IntList();
+    for (int i=p.size()-1; i>=0; i--)
     {
-      Particle p = ps.p.get(i);
+      Particle par = p.get(i);
       
-      if (p.lifetime<0) toDestroy = i;
-      p.lifetime -= deltaTime;
-      p.col = lerpColor(ps.initialColor, ps.endColor, p.lifetime/ps.lifespan);
+      if (par.lifetime<0) toDestroy.append(i);
+      par.lifetime -= deltaTime;
+      par.col = lerpColor(endColor, initialColor, par.lifetime/lifespan);
       
-      p.speed = p.speed.normalize().mult(lerp(ps.initialSpeed, ps.initialSpeed, p.lifetime/ps.lifespan));
-      p.pos = p.pos.add(p.speed.mult(deltaTime));
-      p.Draw();
+      
+      par.speed = par.speed.normalize().mult(lerp(endSpeed, initialSpeed, par.lifetime/lifespan));
+      par.pos = par.pos.add(par.speed.mult(deltaTime));
+      par.Draw();
     }
-    if (toDestroy > -1)
-      ps.p.remove(toDestroy);
-    
+    for (int i: toDestroy)
+      p.remove(i);
   }
 }
