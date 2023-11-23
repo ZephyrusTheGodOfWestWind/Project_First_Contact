@@ -1,3 +1,4 @@
+
 void CollectItem (Item item, Inventory inv) 
 {
   inv.items.add(item);
@@ -10,9 +11,23 @@ void CollectItem (Item item, Inventory inv)
     if (!inv.busy[slot])
       break;
   }
-  item.pos = inv.slots.get(slot).globalPos;
-  item.size = inv.slots.get(slot).size;
-  inv.busy[slot] = true;
+  final int s = slot;
+  inv.busy[s] = true;
+  
+  item.collectAnimation = new Animation(2);
+  item.collectAnimation.function = new Function ()
+  {
+    @Override
+    void play(float timer)
+      {item.CollectAnimation(item.collectAnimation.timer, item.collectAnimation.animationTime, s);}
+    @Override
+    void finish()
+    {
+      item.pos = inv.slots.get(s).globalPos;
+      item.size = inv.slots.get(s).size;
+    }
+  };
+  item.collectAnimation.Play();
 }
 
 class Inventory
@@ -53,6 +68,14 @@ class Inventory
     {
       i.Draw();
     }
+    for (UIComponent s : slots)
+    {
+      if (mouseX > s.globalPos.x && mouseX < s.globalPos.x+s.size.x && mouseY > s.globalPos.y && mouseY < s.globalPos.y+s.size.y)
+      {
+        fill(0x44ffffff);
+        rect(s.globalPos.x, s.globalPos.y, s.size.x, s.size.y);
+      }
+    }
   }
   
   void mouseReleased()
@@ -60,7 +83,8 @@ class Inventory
     for (int i=0; i<items.size(); i++)
     {
       Item it = items.get(i);
-      if(mouseX > it.pos.x && mouseX < it.pos.x+it.size.x && mouseY > it.pos.y && mouseY < it.pos.y+it.size.y)
+      println(it.collectAnimation.inProgress);
+      if(mouseX > it.pos.x && mouseX < it.pos.x+it.size.x && mouseY > it.pos.y && mouseY < it.pos.y+it.size.y && !it.collectAnimation.inProgress)
       {
         if (grabbedItem != null && grabbedItem != it)
         {

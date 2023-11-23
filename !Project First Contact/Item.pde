@@ -9,6 +9,35 @@ class Item {
   PVector pos, size;
   Scene scene;
   Inventory inventory;
+  Animation collectAnimation;
+  
+  void CollectAnimation(float timer, float time, int cellNum)
+  {
+    PVector invPos = inv.slots.get(cellNum).globalPos;
+    PVector invSize = inv.slots.get(cellNum).size;
+    float timeRatio = timer/time;
+    
+    if (timeRatio > 0.3)
+    {
+      textAlign(CENTER, CENTER);
+      fill(#ffffff);
+      text("u found " + name, width/2, height/2-120);
+      textAlign(CORNER);
+    }
+    if (timeRatio > 0.7)
+    {
+      size = PVector.lerp(size, new PVector(200, 200), 15*deltaTime/time);
+      pos = PVector.lerp(pos, new PVector(width/2-100,height/2-100), 15*deltaTime/time);
+    }
+    else if (timeRatio > 0.3)
+    {
+    }
+    else
+    {
+      size = PVector.lerp(size, invSize, 15*deltaTime/time);
+      pos = PVector.lerp(pos, invPos, 15*deltaTime/time);
+    }
+  }
   
   void Draw ()
   {
