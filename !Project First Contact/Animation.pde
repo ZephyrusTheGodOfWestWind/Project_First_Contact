@@ -22,7 +22,6 @@ class AnimationPlayer
       a.timer -= deltaTime;
       if (a.timer<=0)
       {
-        a.function.finish();
         a.inProgress = false;
         toRemove.append(i);
       }
@@ -30,6 +29,7 @@ class AnimationPlayer
     }
     for (int i: toRemove)
     {
+      animations.get(i).function.finish();
       animations.remove(i);
     }
   }

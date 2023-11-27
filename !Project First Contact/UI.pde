@@ -10,8 +10,8 @@ class UIComponent
   void AddChild(UIComponent child)
   {
     child.parent = this;
-    children.add(this);
-    child.localPos = child.globalPos.sub(globalPos);
+    children.add(child);
+    child.localPos = child.globalPos.copy().sub(globalPos);
   }
   void Draw() 
   {
@@ -23,6 +23,7 @@ class UIComponent
 
 class UIPanel extends UIComponent
 {
+  color col = 0x55ffffff;
   UIPanel(PVector p, PVector s)
   {
     children = new ArrayList<UIComponent>();
@@ -69,7 +70,7 @@ class UIPanel extends UIComponent
       active = scene.active;
     if (active)
     {
-      fill(0x55ffffff);
+      fill(col);
       rect(globalPos.x, globalPos.y, size.x, size.y);
     }
     for (UIComponent c: children)
@@ -80,6 +81,50 @@ class UIPanel extends UIComponent
 }
 
 enum Status {CLICKED, HOVER, REST}
+
+interface Butt
+{
+  void OnButtonClick ();
+}
+class UIButton extends UIPanel
+{
+  Butt butt = null;
+  Status status;
+  boolean enabled = true;
+  color colRest = 0x55ffffff;
+  color colHover = 0x5599ff99;
+  
+  UIButton(PVector p, PVector s) {super(p, s);}
+  UIButton(PVector p, PVector s, UIComponent par) {super(p, s, par);}
+  UIButton(PVector p, PVector s, Scene sc) {super(p, s, sc);}
+  UIButton(PVector p, PVector s, UIComponent par, Scene sc) {super(p, s, par, sc);}
+  
+  void checkStatus()
+  {
+    if (globalPos.x<mouseX && mouseX<globalPos.x+size.x && globalPos.y<mouseY && mouseY<globalPos.y+size.y)
+    {
+       if((mousePressed && status == Status.HOVER) || status == Status.CLICKED) status = Status.CLICKED;
+       if (!mousePressed) status = Status.HOVER;
+       else if (status!=Status.CLICKED) status = Status.REST;
+    }
+    else if (status == Status.CLICKED && mousePressed) status = Status.CLICKED;
+    else status = Status.REST;
+  }
+  @Override
+  void Draw()
+  {
+    checkStatus();
+    if (enabled)
+    {
+      if (status == Status.REST) col = colRest;
+      if (status == Status.HOVER) col = colHover;
+      if (status == Status.CLICKED) butt.OnButtonClick();
+    }
+    else
+        col = colRest;
+      super.Draw();
+  }
+}
 
 class UISlider extends UIComponent
   {
@@ -103,9 +148,7 @@ class UISlider extends UIComponent
       
       bar = new UIPanel (p,s,this);
       PVector sliderP = p.sub(sliderS.mult(0.5)).add(new PVector ( 0, s.y/2));
-      println(sliderP);
       slider = new UIPanel (sliderP,sliderS,this);
-      println(slider.globalPos);
     }
     UISlider (PVector p, PVector s, PVector sliderS, float min, float max, UIComponent par)
     {

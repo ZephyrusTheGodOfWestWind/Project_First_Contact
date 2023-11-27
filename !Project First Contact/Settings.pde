@@ -21,8 +21,6 @@ class Settings
     masterVolumeSlider.value = 100;
     sfxVolumeSlider.value = 100;
     musicVolumeSlider.value = 100;
-    
-    println(masterVolumeSlider.slider.globalPos);
   }
   void draw()
   {
@@ -30,16 +28,20 @@ class Settings
     {
       mainWindow.Draw();
       
-      if (masterVolumeSlider.status == Status.CLICKED) 
-        sf.amp(settings.musicVolumeSlider.value/100 * settings.masterVolumeSlider.value/100);
-      if (musicVolumeSlider.status == Status.CLICKED) 
-        sf.amp(settings.musicVolumeSlider.value/100 * settings.masterVolumeSlider.value/100);
-      if (sfxVolumeSlider.status == Status.CLICKED) 
-        sf.amp(settings.musicVolumeSlider.value/100 * settings.masterVolumeSlider.value/100);
+      if (sf != null)
+      {
+        if (masterVolumeSlider.status == Status.CLICKED) 
+          sf.amp(settings.musicVolumeSlider.value/100 * settings.masterVolumeSlider.value/100);
+        if (musicVolumeSlider.status == Status.CLICKED) 
+          sf.amp(settings.musicVolumeSlider.value/100 * settings.masterVolumeSlider.value/100);
+        if (sfxVolumeSlider.status == Status.CLICKED) 
+          sf.amp(settings.musicVolumeSlider.value/100 * settings.masterVolumeSlider.value/100);
+      }
       
       translate(mainWindow.globalPos.x,mainWindow.globalPos.y);
       fill(#1fee62);
       textAlign(CENTER, CENTER);
+      textSize(80);
       text("Settings", mainWindow.size.x/2, 50);
       
       textSize(24);
@@ -57,7 +59,7 @@ class Settings
   }
   void keyReleased()
   {
-    if (keyCode == TAB)
-      active = !active;
+    active = !active;
+    if (!active && gameStatus == GameStatus.MENU) mm.Enable();
   }
 }

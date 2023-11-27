@@ -4,7 +4,9 @@ void CollectItem (Item item, Inventory inv)
   inv.items.add(item);
   item.inventory = inv;
   item.collected = true;
+  item.scene.itemsToRemove.add(item);
   item.scene = null;
+  
   int slot;
   for (slot=0; slot<inv.slots.size(); slot++)
   {

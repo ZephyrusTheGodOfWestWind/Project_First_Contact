@@ -5,15 +5,33 @@ void CreateSceneSwitch (PVector p, PVector s, Scene from, Scene to)
 class Scene
 {
   boolean active;
+  boolean enabled = true;
   String name = "new scene";
-  ArrayList<SceneSwitch> switches;
-  ArrayList<Item> items;
+  
+  ArrayList<SceneSwitch> switches = new ArrayList<SceneSwitch>();
+  ArrayList<Item> items = new ArrayList<Item>();
+  ArrayList<Trigger> triggers = new ArrayList<Trigger>();
+  
+  ArrayList<Item> itemsToRemove = new ArrayList<Item>();
+  
+  PImage background;
   
   Scene(String n)
   {
     name = n;
-    switches = new ArrayList<SceneSwitch>();
-    items = new ArrayList<Item>();
+  }
+  void Draw()
+  {
+    if (background == null)
+    {
+      textSize(48);
+      text(name, 500, 500);
+    }
+    else
+    {
+      //pp.ApplyDistortion(background);
+      image(background, 0, 0, width, height);
+    }
   }
 }
 class SceneSwitch
@@ -30,31 +48,39 @@ class SceneSwitch
     fromScene = from;
     toScene = to;
   }
-  
   void DrawLayout()
   {
     if (shown)
     {
       if (active)
-        fill(#5588ff);
+        fill(0x775588ff);
       else
-        fill(#ff2200);
+        fill(0x44aa2200);
       rect(pos.x, pos.y, size.x, size.y);
     }
   }
 }
+
 class SceneManager
 {
   ArrayList<Scene> scenes;
   Scene currentScene;
+  Scene toScene = null;
+  color overlay = color(1,0);
+  Animation transition = new Animation(1);
   
-  void switchScenes (Scene from, Scene to)
+  void SwitchScenes (Scene to)
   {
-    from.active = false;
+    currentScene.active = false;
     to.active = true;
     currentScene = to;
   }
-  
+  void Transition(float timer, float time, Scene to)
+  {
+    sm.overlay = color(1, (1-abs(timer*2-time)/time)*255);
+    if (timer < time/2)
+      SwitchScenes (to);
+  }
   SceneManager(Scene defaultScene)
   {
     scenes = new ArrayList<Scene>();
@@ -64,8 +90,8 @@ class SceneManager
   }
   void draw()
   {
-    textSize(48);
-    text(currentScene.name, 500, 500);
+    println(currentScene.name);
+    currentScene.Draw();
     for (SceneSwitch sw: currentScene.switches)
     {
       sw.shown = true;
@@ -73,18 +99,55 @@ class SceneManager
     }
     for (Item i : currentScene.items)
       i.Draw();
+    for (Trigger t : currentScene.triggers)
+      t.DrawLayout();
+  }
+  void drawOverlay()
+  {
+    fill(overlay);
+    rect(0,0,width,height);
   }
   void mouseReleased() {
-    for (SceneSwitch sw: currentScene.switches)
+    if (currentScene.enabled)
     {
-      if (mouseX > sw.pos.x && mouseX < sw.pos.x+sw.size.x && mouseY > sw.pos.y && mouseY < sw.pos.y+sw.size.y && sw.active && sw.shown)
+      for (SceneSwitch sw: currentScene.switches)
       {
-        switchScenes (sw.fromScene, sw.toScene);
+        if (mouseX > sw.pos.x && mouseX < sw.pos.x+sw.size.x && mouseY > sw.pos.y && mouseY < sw.pos.y+sw.size.y && sw.active && sw.shown)
+        {
+          transition = new Animation(0.25);
+          currentScene.enabled = false;
+          sw.toScene.enabled = false;
+          transition.function = new Function()
+          {
+            @Override
+            void play(float timer)
+            {
+              Transition(timer, transition.animationTime, sw.toScene);
+            }
+            @Override
+            void finish()
+            {
+              currentScene.enabled = true;
+              sw.toScene.enabled = true;
+              overlay = 0x000010101;
+            }
+          };
+          transition.Play();
+        }
       }
-    }
-    for (Item i : currentScene.items)
-    {
-      i.mouseReleased();
+      currentScene.itemsToRemove.clear();
+      for (Item i : currentScene.items)
+      {
+        i.mouseReleased();
+      }
+      for (Item i : currentScene.itemsToRemove)
+      {
+        currentScene.items.remove(i);
+      }
+      for (Trigger t : currentScene.triggers)
+      {
+        t.mouseReleased();
+      }
     }
   }
 }
